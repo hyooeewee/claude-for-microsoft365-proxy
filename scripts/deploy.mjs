@@ -48,7 +48,7 @@ if (publicVars.length === 0) {
 
 // Build deploy flags
 const varFlags = publicVars
-  .map(({ key, value }) => ` --var ${key}=${value}`)
+  .map(({ key, value }) => ` --var ${key}:${value}`)
   .join("");
 
 const domainFlag = customDomain ? ` --domain ${customDomain}` : "";
