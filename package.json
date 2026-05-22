@@ -1,0 +1,12 @@
+{
+  "name": "cors-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx wrangler dev",
+    "deploy": "node scripts/deploy.mjs",
+    "build": "node scripts/build-manifest.mjs",
+    "load": "npx office-addin-dev-settings sideload manifest.xml"
+  }
+}

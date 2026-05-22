@@ -1,0 +1,8 @@
+# Environment & secrets
+.env.local
+
+# Generated manifest (contains gateway_token)
+manifest.xml
+
+# Wrangler
+.wrangler/
