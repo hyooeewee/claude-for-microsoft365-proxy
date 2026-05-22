@@ -127,9 +127,9 @@ cp manifest.xml.example manifest.xml
 
 | 变量名 | 必填 | 说明 |
 |---|---|---|
-| `TARGET_BASE` | 是 | 上游 API 基础地址 |
+| `TARGET_BASE` | 是 | 上游 API 基础地址，例如 `https://api.example.com` |
 | `ALLOWED_ORIGIN` | 否 | CORS 允许的来源，默认 `https://pivot.claude.ai` |
-| `GATEWAY_URL` | 否 | 本代理的公网地址（有值时自动设置为自定义域名） |
+| `GATEWAY_URL` | 否 | 本代理的公网地址（有值时自动设置为自定义域名,例如`proxy.com`） |
 | `GATEWAY_TOKEN` | 否 | 上游 API Key（Worker 不读取，仅在 manifest.xml 中使用） |
 | `KNOWN_MODELS` | 否 | 模型映射，JSON 对象格式 `{"public_name":"internal_name",...}`。`public_name` 对外展示，`internal_name` 用于请求转发 |
 | `DEFAULT_MODEL` | 否 | 未知模型名的 fallback |

@@ -30,11 +30,12 @@ function loadEnv(path) {
       continue;
     }
 
-    publicVars.push({ key, value });
-
     if (key === "GATEWAY_URL") {
       customDomain = value.replace(/^https?:\/\//, "");
+      continue;
     }
+    publicVars.push({ key, value });
+
   }
   return { publicVars, customDomain };
 }

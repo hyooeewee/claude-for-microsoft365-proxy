@@ -128,9 +128,9 @@ Then copy `manifest.xml` to your Office shared add-ins folder and restart Excel/
 
 | Variable | Required | Description |
 |---|---|---|
-| `TARGET_BASE` | Yes | Upstream API base URL |
+| `TARGET_BASE` | Yes | Upstream API base URL, e.g. `https://api.example.com` |
 | `ALLOWED_ORIGIN` | No | CORS allowed origin, defaults to `https://pivot.claude.ai` |
-| `GATEWAY_URL` | No | This proxy's public URL (auto-configured as custom domain if set) |
+| `GATEWAY_URL` | No | This proxy's public URL (auto-configured as custom domain if set, e.g. `proxy.com`) |
 | `GATEWAY_TOKEN` | No | Upstream API key (Worker does not read it, used only in manifest.xml) |
 | `KNOWN_MODELS` | No | Model mapping as JSON object `{"public_name":"internal_name",...}`. `public_name` is exposed externally, `internal_name` is used for request forwarding |
 | `DEFAULT_MODEL` | No | Fallback model for unknown names |

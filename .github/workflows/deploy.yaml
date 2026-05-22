@@ -16,30 +16,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Resolve GATEWAY_URL
-        id: gateway
-        run: |
-          if [ -n "${{ vars.GATEWAY_URL }}" ]; then
-            URL="${{ vars.GATEWAY_URL }}"
-            DOMAIN=$(echo "$URL" | sed 's|^https://||; s|^http://||')
-          elif [ -n "${{ vars.CUSTOM_DOMAIN }}" ]; then
-            CD="${{ vars.CUSTOM_DOMAIN }}"
-            # Strip protocol if present
-            DOMAIN=$(echo "$CD" | sed 's|^https://||; s|^http://||')
-            URL="https://${DOMAIN}"
-          else
-            SUBDOMAIN=$(curl -s -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-              "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/workers/subdomain" | \
-              jq -r '.result.subdomain')
-            NAME=$(grep '^name' wrangler.toml | sed 's/name *= *"\(.*\)"/\1/')
-            DOMAIN="${NAME}.${SUBDOMAIN}.workers.dev"
-            URL="https://${DOMAIN}"
-          fi
-          echo "url=$URL" >> $GITHUB_OUTPUT
-          echo "domain=$DOMAIN" >> $GITHUB_OUTPUT
-          echo "Resolved GATEWAY_URL: $URL"
-          echo "Resolved DOMAIN: $DOMAIN"
-
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
@@ -50,14 +26,4 @@ jobs:
             ${{ vars.GATEWAY_URL != '' && format(' --var GATEWAY_URL:{0}', vars.GATEWAY_URL) || '' }} \
             ${{ vars.KNOWN_MODELS != '' && format(' --var KNOWN_MODELS:{0}', vars.KNOWN_MODELS) || '' }} \
             ${{ vars.DEFAULT_MODEL != '' && format(' --var DEFAULT_MODEL:{0}', vars.DEFAULT_MODEL) || '' }} \
-            ${{ steps.gateway.outputs.domain != '' && format(' --route {0}', steps.gateway.outputs.domain) || '' }}
-
-      - name: Save GATEWAY_URL to Variables
-        if: ${{ vars.GATEWAY_URL == '' }}
-        run: |
-          curl -s -X PUT \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/variables/GATEWAY_URL" \
-            -d "{\"name\":\"GATEWAY_URL\",\"value\":\"${{ steps.gateway.outputs.url }}\"}"
-          echo "GATEWAY_URL saved to repository variables."
+            ${{ vars.GATEWAY_URL != '' && format(' --route {0}', vars.GATEWAY_URL) || '' }}
