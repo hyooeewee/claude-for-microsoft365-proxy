@@ -1,5 +1,5 @@
 {
-  "name": "cors-proxy",
+  "name": "claude-for-microsoft365-proxy",
   "version": "1.0.0",
   "private": true,
   "type": "module",
