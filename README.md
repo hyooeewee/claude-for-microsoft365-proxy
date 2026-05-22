@@ -131,7 +131,7 @@ cp manifest.xml.example manifest.xml
 | `ALLOWED_ORIGIN` | 否 | CORS 允许的来源，默认 `https://pivot.claude.ai` |
 | `GATEWAY_URL` | 否 | 本代理的公网地址（有值时自动设置为自定义域名） |
 | `GATEWAY_TOKEN` | 否 | 上游 API Key（Worker 不读取，仅在 manifest.xml 中使用） |
-| `KNOWN_MODELS` | 否 | 模型列表，逗号分隔 |
+| `KNOWN_MODELS` | 否 | 模型映射，JSON 对象格式 `{"public_name":"internal_name",...}`。`public_name` 对外展示，`internal_name` 用于请求转发 |
 | `DEFAULT_MODEL` | 否 | 未知模型名的 fallback |
 
 Worker 只需 `TARGET_BASE` 即可转发请求。`KNOWN_MODELS` 和 `DEFAULT_MODEL` 仅用于 `/v1/models` 拦截和 model fallback。
@@ -150,7 +150,8 @@ Worker 只需 `TARGET_BASE` 即可转发请求。`KNOWN_MODELS` 和 `DEFAULT_MOD
 
 Worker 的功能：
 - 拦截 `/v1/models`，返回模拟的模型列表（上游不支持该接口）
-- 将未知模型名映射为默认值（`DEFAULT_MODEL`）
+- 将请求中的模型名映射为上游实际使用的模型名（`KNOWN_MODELS`）
+- 未知模型名回退到默认值（`DEFAULT_MODEL`）
 - 其余请求原样转发
 
 ## 项目结构

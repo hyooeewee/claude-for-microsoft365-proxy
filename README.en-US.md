@@ -132,7 +132,7 @@ Then copy `manifest.xml` to your Office shared add-ins folder and restart Excel/
 | `ALLOWED_ORIGIN` | No | CORS allowed origin, defaults to `https://pivot.claude.ai` |
 | `GATEWAY_URL` | No | This proxy's public URL (auto-configured as custom domain if set) |
 | `GATEWAY_TOKEN` | No | Upstream API key (Worker does not read it, used only in manifest.xml) |
-| `KNOWN_MODELS` | No | Comma-separated model list |
+| `KNOWN_MODELS` | No | Model mapping as JSON object `{"public_name":"internal_name",...}`. `public_name` is exposed externally, `internal_name` is used for request forwarding |
 | `DEFAULT_MODEL` | No | Fallback model for unknown names |
 
 The Worker only needs `TARGET_BASE` to forward requests. `KNOWN_MODELS` and `DEFAULT_MODEL` are only used for `/v1/models` interception and model fallback.
@@ -151,7 +151,8 @@ Browser (Claude Add-in)
 
 The Worker:
 - Intercepts `/v1/models` and returns a mock model list (upstream doesn't support it)
-- Maps unknown model names to a default (`DEFAULT_MODEL`)
+- Maps model names to upstream model names (`KNOWN_MODELS`)
+- Falls back unknown model names to the default (`DEFAULT_MODEL`)
 - Forwards all other requests unchanged
 
 ## Project Structure

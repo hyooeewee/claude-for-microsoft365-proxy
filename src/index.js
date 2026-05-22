@@ -1,11 +1,27 @@
 // CORS proxy for Claude Office Add-in
 
 function parseModels(env) {
-  const models = env.KNOWN_MODELS
-    ? env.KNOWN_MODELS.split(",").map((s) => s.trim())
-    : [];
+  let modelMap = {};
+  try {
+    if (env.KNOWN_MODELS) {
+      const parsed = JSON.parse(env.KNOWN_MODELS);
+      if (parsed && typeof parsed === "object") {
+        modelMap = parsed;
+      }
+    }
+  } catch {
+    // Fallback: treat as comma-separated list for backward compatibility
+    if (env.KNOWN_MODELS) {
+      for (const id of env.KNOWN_MODELS.split(",")) {
+        const trimmed = id.trim();
+        if (trimmed) modelMap[trimmed] = trimmed;
+      }
+    }
+  }
+
+  const models = Object.keys(modelMap);
   const defaultModel = env.DEFAULT_MODEL?.trim() || "";
-  return { models, defaultModel };
+  return { models, modelMap, defaultModel };
 }
 
 function corsHeaders(origin) {
@@ -17,13 +33,61 @@ function corsHeaders(origin) {
   };
 }
 
-function mockModelsResponse(origin, knownModels) {
-  const models = knownModels.map((id) => ({
-    type: "model",
+function buildCapabilities() {
+  return {
+    batch: { supported: true },
+    citations: { supported: true },
+    code_execution: { supported: true },
+    context_management: {
+      supported: true,
+      clear_thinking_20251015: { supported: true },
+      clear_tool_uses_20250919: { supported: true },
+      compact_20260112: { supported: true },
+    },
+    effort: {
+      supported: true,
+      low: { supported: true },
+      medium: { supported: true },
+      high: { supported: true },
+      max: { supported: true },
+      xhigh: { supported: true },
+    },
+    image_input: { supported: true },
+    pdf_input: { supported: true },
+    structured_outputs: { supported: true },
+    thinking: {
+      supported: true,
+      types: {
+        adaptive: { supported: true },
+        enabled: { supported: true },
+      },
+    },
+  };
+}
+
+function mockModelsResponse(origin, knownModels, modelMap, limit, afterId, beforeId) {
+  let models = knownModels.map((id) => ({
     id,
-    display_name: id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-    created_at: "2025-01-01T00:00:00Z",
+    display_name: modelMap[id] || id,
+    created_at: "2026-01-01T00:00:00.000Z",
+    capabilities: buildCapabilities(),
+    max_input_tokens: 0,
+    max_tokens: 0,
+    type: "model",
   }));
+
+  if (afterId) {
+    const idx = models.findIndex((m) => m.id === afterId);
+    if (idx >= 0) models = models.slice(idx + 1);
+  }
+  if (beforeId) {
+    const idx = models.findIndex((m) => m.id === beforeId);
+    if (idx >= 0) models = models.slice(0, idx);
+  }
+  if (limit && limit > 0) {
+    models = models.slice(0, Math.min(limit, 1000));
+  }
+
   return new Response(
     JSON.stringify({
       data: models,
@@ -34,7 +98,7 @@ function mockModelsResponse(origin, knownModels) {
     {
       status: 200,
       headers: { "content-type": "application/json", ...corsHeaders(origin) },
-    }
+    },
   );
 }
 
@@ -47,12 +111,15 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
-    const { models: knownModels, defaultModel } = parseModels(env);
+    const { models: knownModels, modelMap, defaultModel } = parseModels(env);
     const url = new URL(request.url);
 
     // Intercept /v1/models
     if (url.pathname === "/v1/models" && request.method === "GET") {
-      return mockModelsResponse(origin, knownModels);
+      const limit = parseInt(url.searchParams.get("limit"), 10) || null;
+      const afterId = url.searchParams.get("after_id");
+      const beforeId = url.searchParams.get("before_id");
+      return mockModelsResponse(origin, knownModels, modelMap, limit, afterId, beforeId);
     }
 
     // Forward everything else — map unknown model names to default
@@ -73,6 +140,8 @@ export default {
           !knownModels.includes(data.model)
         ) {
           data.model = defaultModel;
+        } else if (data.model && modelMap[data.model]) {
+          data.model = modelMap[data.model];
         }
 
         body = JSON.stringify(data);
@@ -83,7 +152,10 @@ export default {
 
     const headers = new Headers(request.headers);
     if (typeof body === "string") {
-      headers.set("content-length", String(new TextEncoder().encode(body).length));
+      headers.set(
+        "content-length",
+        String(new TextEncoder().encode(body).length),
+      );
     }
 
     const modifiedRequest = new Request(targetUrl, {
