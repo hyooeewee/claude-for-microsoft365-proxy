@@ -21,24 +21,31 @@ jobs:
         run: |
           if [ -n "${{ vars.GATEWAY_URL }}" ]; then
             URL="${{ vars.GATEWAY_URL }}"
+            DOMAIN=$(echo "$URL" | sed 's|^https://||; s|^http://||')
           elif [ -n "${{ vars.CUSTOM_DOMAIN }}" ]; then
-            URL="https://${{ vars.CUSTOM_DOMAIN }}"
+            CD="${{ vars.CUSTOM_DOMAIN }}"
+            # Strip protocol if present
+            DOMAIN=$(echo "$CD" | sed 's|^https://||; s|^http://||')
+            URL="https://${DOMAIN}"
           else
             SUBDOMAIN=$(curl -s -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
               "https://api.cloudflare.com/client/v4/accounts/${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/workers/subdomain" | \
               jq -r '.result.subdomain')
             NAME=$(grep '^name' wrangler.toml | sed 's/name *= *"\(.*\)"/\1/')
-            URL="https://${NAME}.${SUBDOMAIN}.workers.dev"
+            DOMAIN="${NAME}.${SUBDOMAIN}.workers.dev"
+            URL="https://${DOMAIN}"
           fi
           echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "domain=$DOMAIN" >> $GITHUB_OUTPUT
           echo "Resolved GATEWAY_URL: $URL"
+          echo "Resolved DOMAIN: $DOMAIN"
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --var TARGET_BASE=${{ vars.TARGET_BASE }} --var GATEWAY_URL=${{ steps.gateway.outputs.url }}${{ vars.KNOWN_MODELS != '' && format(' --var KNOWN_MODELS={0}', vars.KNOWN_MODELS) || '' }}${{ vars.DEFAULT_MODEL != '' && format(' --var DEFAULT_MODEL={0}', vars.DEFAULT_MODEL) || '' }}${{ vars.CUSTOM_DOMAIN != '' && format(' --domain {0}', vars.CUSTOM_DOMAIN) || '' }}
+          command: deploy --var TARGET_BASE=${{ vars.TARGET_BASE }} --var GATEWAY_URL=${{ steps.gateway.outputs.url }}${{ vars.KNOWN_MODELS != '' && format(' --var KNOWN_MODELS={0}', vars.KNOWN_MODELS) || '' }}${{ vars.DEFAULT_MODEL != '' && format(' --var DEFAULT_MODEL={0}', vars.DEFAULT_MODEL) || '' }}${{ steps.gateway.outputs.domain != '' && format(' --route {0}/*', steps.gateway.outputs.domain) || '' }}
 
       - name: Save GATEWAY_URL to Variables
         if: ${{ vars.GATEWAY_URL == '' }}
