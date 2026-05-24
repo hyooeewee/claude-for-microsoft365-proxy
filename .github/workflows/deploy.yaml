@@ -2,12 +2,8 @@ name: Deploy to Cloudflare Workers
 
 on:
   push:
-    branches: [main]
+    branches: [main, preview]
   workflow_dispatch:
-
-permissions:
-  contents: read
-  actions: write
 
 jobs:
   deploy:
@@ -17,8 +13,24 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to Cloudflare Workers
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --var 'TARGET_BASE:${{ vars.TARGET_BASE }}'${{ vars.ALLOWED_ORIGIN != '' && format(' --var ''ALLOWED_ORIGIN:{0}''', vars.ALLOWED_ORIGIN) || '' }}${{ vars.KNOWN_MODELS != '' && format(' --var ''KNOWN_MODELS:{0}''', vars.KNOWN_MODELS) || '' }}${{ vars.DEFAULT_MODEL != '' && format(' --var ''DEFAULT_MODEL:{0}''', vars.DEFAULT_MODEL) || '' }}${{ vars.GATEWAY_URL != '' && format(' --route {0}', vars.GATEWAY_URL) || '' }}
+        run: |
+          args=()
+          [ -n "$TARGET_BASE" ] && args+=("--var" "TARGET_BASE:${TARGET_BASE}")
+          [ -n "$ALLOWED_ORIGIN" ] && args+=("--var" "ALLOWED_ORIGIN:${ALLOWED_ORIGIN}")
+          [ -n "$KNOWN_MODELS" ] && args+=("--var" "KNOWN_MODELS:${KNOWN_MODELS}")
+          [ -n "$DEFAULT_MODEL" ] && args+=("--var" "DEFAULT_MODEL:${DEFAULT_MODEL}")
+
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            [ -n "$GATEWAY_URL" ] && args+=("--domain" "$GATEWAY_URL")
+            npx wrangler deploy "${args[@]}"
+          else
+            npx wrangler versions upload --preview-alias "${{ github.ref_name }}" "${args[@]}"
+          fi
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TARGET_BASE: ${{ vars.TARGET_BASE }}
+          ALLOWED_ORIGIN: ${{ vars.ALLOWED_ORIGIN }}
+          KNOWN_MODELS: ${{ vars.KNOWN_MODELS }}
+          DEFAULT_MODEL: ${{ vars.DEFAULT_MODEL }}
+          GATEWAY_URL: ${{ vars.GATEWAY_URL }}
