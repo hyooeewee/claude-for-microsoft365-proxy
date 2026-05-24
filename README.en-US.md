@@ -6,6 +6,25 @@ Cloudflare Worker that proxies API requests for the [Claude Office](https://supp
 
 ![main](docs/main.png)
 
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/Presentation.png" alt="" /><br />
+    </td>
+    <td width="50%">
+      <img src="docs/Presentation.gif" alt="" /><br />
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/Document.png" alt="" /><br />
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/Book.png" alt="" /><br />
+    </td>
+  </tr>
+</table>
+
 ## Quick Start
 
 ```

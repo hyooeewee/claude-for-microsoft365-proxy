@@ -4,7 +4,26 @@
 
 用于 [Claude Office](https://support.claude.com/en/articles/13945233-use-claude-for-microsoft-365-with-third-party-platforms) 插件的 Cloudflare Worker 代理，绕过浏览器 CORS 限制，将请求转发到上游 API。
 
-![main](docs/main.png)
+![main](docs/screenshots/main.png)
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/Presentation.png" alt="" /><br />
+    </td>
+    <td width="50%">
+      <img src="docs/Presentation.gif" alt="" /><br />
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/screenshots/Document.png" alt="" /><br />
+    </td>
+    <td width="50%">
+      <img src="docs/screenshots/Book.png" alt="" /><br />
+    </td>
+  </tr>
+</table>
 
 ## 快速开始
 
