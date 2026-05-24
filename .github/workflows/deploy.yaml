@@ -21,4 +21,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy --var 'TARGET_BASE:${{ vars.TARGET_BASE }}'${{ vars.ALLOWED_ORIGIN != '' && format(" --var 'ALLOWED_ORIGIN:{0}'", vars.ALLOWED_ORIGIN) || '' }}${{ vars.KNOWN_MODELS != '' && format(" --var 'KNOWN_MODELS:{0}'", vars.KNOWN_MODELS) || '' }}${{ vars.DEFAULT_MODEL != '' && format(" --var 'DEFAULT_MODEL:{0}'", vars.DEFAULT_MODEL) || '' }}${{ vars.GATEWAY_URL != '' && format(' --route {0}', vars.GATEWAY_URL) || '' }}
+          command: deploy --var 'TARGET_BASE:${{ vars.TARGET_BASE }}'${{ vars.ALLOWED_ORIGIN != '' && format(' --var ''ALLOWED_ORIGIN:{0}''', vars.ALLOWED_ORIGIN) || '' }}${{ vars.KNOWN_MODELS != '' && format(' --var ''KNOWN_MODELS:{0}''', vars.KNOWN_MODELS) || '' }}${{ vars.DEFAULT_MODEL != '' && format(' --var ''DEFAULT_MODEL:{0}''', vars.DEFAULT_MODEL) || '' }}${{ vars.GATEWAY_URL != '' && format(' --route {0}', vars.GATEWAY_URL) || '' }}
